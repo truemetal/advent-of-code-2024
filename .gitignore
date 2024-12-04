@@ -1,0 +1,13 @@
+.DS_Store
+
+# we're using xcodegen to generate .xcodeproj, but we need Package.resolved; everything except that is ignored
+**/*.xcodeproj/project.pbxproj
+**/*.xcodeproj/xcuserdata
+**/*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+**/*.xcodeproj/project.xcworkspace/xcuserdata
+**/*.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+**/*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/*
+!**/*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+
+**/*.xcworkspace
+!**/*.xcworkspace/contents.xcworkspacedata
