@@ -1,7 +1,5 @@
 .DS_Store
 
-# we're using xcodegen to generate .xcodeproj, but we need Package.resolved; everything except that is ignored
-**/*.xcodeproj/project.pbxproj
 **/*.xcodeproj/xcuserdata
 **/*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
 **/*.xcodeproj/project.xcworkspace/xcuserdata
