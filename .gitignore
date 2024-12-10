@@ -1,6 +1,8 @@
 .DS_Store
 
-**/*.xcodeproj/xcuserdata
+**/*.xcodeproj/*
+!**/*.xcodeproj/project.pbxproj
+
 **/*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
 **/*.xcodeproj/project.xcworkspace/xcuserdata
 **/*.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
