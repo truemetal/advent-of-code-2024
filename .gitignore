@@ -11,3 +11,8 @@
 
 **/*.xcworkspace
 !**/*.xcworkspace/contents.xcworkspacedata
+
+Input.swift
+test_input.txt
+real_input.txt
+input.txt
