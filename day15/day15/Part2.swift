@@ -4,8 +4,10 @@ class Part2 {
     var field: [[Tile]]
     var robotCoord: Coord
     let moves: [Direction]
+    let withAnimation: Bool
 
-    init(contents: String) throws {
+    init(contents: String, withAnimation: Bool) throws {
+        self.withAnimation = withAnimation
         let components = contents.components(separatedBy: "\n\n")
 
         var robotCoord: Coord?
@@ -38,6 +40,11 @@ class Part2 {
 
     func solve() throws {
         for move in moves {
+            if withAnimation {
+                usleep(50 * 1000)
+                cls()
+                printField()
+            }
             try self.move(direction: move)
         }
 
@@ -157,4 +164,9 @@ class Part2 {
 
         res.forEach { print($0) }
     }
+}
+
+func cls() {
+    print("\u{001B}[2J") // clear the screen
+    print("\u{001B}[0;0H", terminator: "") // jump to 0, 0
 }
