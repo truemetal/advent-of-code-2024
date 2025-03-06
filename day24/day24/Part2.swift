@@ -41,36 +41,19 @@ class Part2 {
         return (resVar, operation)
     }
 
-    func checkSwap(wire1: String, wire2: String) throws -> [Int] {
-        let originalEquations = equations
-        defer { equations = originalEquations }
-
-        swap(wire1: wire1, wire2: wire2)
-
-        return try verify()
-    }
-
-    func swap(wire1: String, wire2: String) {
-        let wire1Op = equations[wire1]!
-        let wire2Op = equations[wire2]!
-
-        equations[wire1] = wire2Op
-        equations[wire2] = wire1Op
-    }
-
     func solve() throws {
         // ---- figure out possible replacements
 
-        let originalErrors = try verify()
+        let originalErrors = try getFailingPositions()
 
-        let potentialFailingWires = originalErrors.flatMap { varsForZ(idx: $0) }.set.arr
+        let potentialFailingWires = originalErrors.flatMap { varsRelatedToZ(atIdx: $0) }.set.arr
         var possibleReplacements: Set<[String]> = []
 
         for i in 0 ..< (potentialFailingWires.count - 1) {
             print("\(i) \\ \(potentialFailingWires.count)")
             for y in (i + 1) ..< potentialFailingWires.count {
                 do {
-                    let newErrors = try checkSwap(wire1: potentialFailingWires[i], wire2: potentialFailingWires[y])
+                    let newErrors = try checkErrorsForSwap(wire1: potentialFailingWires[i], wire2: potentialFailingWires[y])
                     if newErrors.count < originalErrors.count {                        possibleReplacements.insert([potentialFailingWires[i], potentialFailingWires[y]])
                     }
                 }
@@ -83,13 +66,13 @@ class Part2 {
         // ---- enumerate possible replacements until matching combo is found
 
         let originalEquations = equations
-        let subsets = subsets(possibleReplacements.arr, ofLength: 4)
+        let subsets = possibleReplacements.arr.subsets(ofLength: 4)
         for subset in subsets {
             equations = originalEquations
             for pair in subset {
                 swap(wire1: pair[0], wire2: pair[1])
             }
-            if (try? verify()) == [] {
+            if (try? getFailingPositions()) == [] {
                 print("Part 2:", subset.flatMap(\.self).sorted().joined(separator: ","))
                 return
             }
@@ -98,27 +81,24 @@ class Part2 {
         print("Part 2: N/A")
     }
 
-    func subsets<T>(_ array: [T], ofLength length: Int) -> [[T]] {
-        guard length > 0 && length <= array.count else { return [] }
+    func checkErrorsForSwap(wire1: String, wire2: String) throws -> [Int] {
+        let originalEquations = equations
+        defer { equations = originalEquations }
 
-        var result: [[T]] = []
+        swap(wire1: wire1, wire2: wire2)
 
-        func backtrack(_ start: Int, _ currentSubset: [T]) {
-            if currentSubset.count == length {
-                result.append(currentSubset)
-                return
-            }
-
-            for i in start..<array.count {
-                backtrack(i + 1, currentSubset + [array[i]])
-            }
-        }
-
-        backtrack(0, [])
-        return result
+        return try getFailingPositions()
     }
 
-    func verify() throws -> [Int] {
+    func swap(wire1: String, wire2: String) {
+        let wire1Op = equations[wire1]!
+        let wire2Op = equations[wire2]!
+
+        equations[wire1] = wire2Op
+        equations[wire2] = wire1Op
+    }
+
+    func getFailingPositions() throws -> [Int] {
         let origVariables = variables
         defer { variables = origVariables }
 
@@ -132,7 +112,7 @@ class Part2 {
             xVars.forEach { variables[$0] = false }
             yVars.forEach { variables[$0] = false }
             variables[yVars[i]] = true
-            if Int(try zBinVal, radix: 2)! != Int(try binStr(vars: yVars), radix: 2)! {
+            if Int(try zBinStr, radix: 2)! != Int(try binStr(vars: yVars), radix: 2)! {
                 failing.insert(i)
             }
         }
@@ -142,7 +122,7 @@ class Part2 {
             xVars.forEach { variables[$0] = false }
             yVars.forEach { variables[$0] = false }
             variables[xVars[i]] = true
-            if Int(try zBinVal, radix: 2)! != Int(try binStr(vars: xVars), radix: 2)! {
+            if Int(try zBinStr, radix: 2)! != Int(try binStr(vars: xVars), radix: 2)! {
                 failing.insert(i)
             }
         }
@@ -154,7 +134,7 @@ class Part2 {
             variables[xVars[i]] = true
             variables[xVars[i-1]] = true
             variables[yVars[i-1]] = true
-            let z = Int(try zBinVal, radix: 2)!
+            let z = Int(try zBinStr, radix: 2)!
 
             variables[xVars[i + 1]] = true
             variables[xVars[i]] = false
@@ -172,7 +152,7 @@ class Part2 {
             variables[yVars[i]] = true
             variables[yVars[i-1]] = true
             variables[xVars[i-1]] = true
-            let z = Int(try zBinVal, radix: 2)!
+            let z = Int(try zBinStr, radix: 2)!
 
             variables[yVars[i + 1]] = true
             variables[yVars[i]] = false
@@ -190,40 +170,37 @@ class Part2 {
         try vars.sorted().reversed().map { try getVarValue(varName: $0) ? "1" : "0" }.joined()
     }
 
-    func varsForZ(idx: Int) -> [String] {
+    func varsRelatedToZ(atIdx idx: Int) -> [String] {
         var res: [String] = []
 
-        let zName = "z" + idx.formatted(.number.precision(.integerLength(2)))
-        var queue = [zName]
+        var queue = [zVars[idx]]
 
         while queue.isNotEmpty {
             let current = queue.removeFirst()
-            //            if current.starts(with: "x") || current.starts(with: "y") { continue }
 
             guard let op = equations[current] else { continue }
-            //            if op.lhs.starts(with: "x") == false, op.lhs.starts(with: "y") == false, op.lhs.starts(with: "z") == false { queue.append(op.lhs) }
-            //            if op.rhs.starts(with: "x") == false, op.rhs.starts(with: "y") == false, op.rhs.starts(with: "z") == false { queue.append(op.rhs) }
             queue.append(op.lhs)
             queue.append(op.rhs)
-
             res.append(current)
         }
 
         return res
     }
 
-    lazy var zVars = equations.keys.filter { $0.hasPrefix("z") }
+    lazy var zVars = equations.keys.filter { $0.hasPrefix("z") }.sorted()
 
-    var zBinVal: String {
+    var zBinStr: String {
         get throws {
             return try binStr(vars: zVars)
         }
     }
 
     func getVarValue(varName: String, requestedVars: Set<String> = []) throws -> Bool {
+        // check for recursion loops
         if requestedVars.contains(varName) { throw genericError }
         var requestedVars = requestedVars
         requestedVars.insert(varName)
+
         if let v = variables[varName] { return v }
 
         let op = equations[varName]!

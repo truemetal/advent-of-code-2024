@@ -29,3 +29,25 @@ enum Operation {
         }
     }
 }
+
+extension Array {
+    func subsets(ofLength length: Int) -> [[Element]] {
+        guard length > 0 && length <= self.count else { return [] }
+
+        var result: [[Element]] = []
+
+        func backtrack(_ start: Int, _ currentSubset: [Element]) {
+            if currentSubset.count == length {
+                result.append(currentSubset)
+                return
+            }
+
+            for i in start ..< self.count {
+                backtrack(i + 1, currentSubset + [self[i]])
+            }
+        }
+
+        backtrack(0, [])
+        return result
+    }
+}
